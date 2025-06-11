@@ -4,7 +4,7 @@ from models.resultados import Resultados
 from metodoAleman import metodo_aleman
 
 def main():
-    bono = Bono(1000, 1050, 0.03923048454, 0.045, 2, 4, 0.01, 0.45, 0.5, 1)
+    bono = Bono(1000, 1050, 0.03923048454, 0.045, 2, 4, 0.01, 0.0045, 0.005, 1)
 
     flujos, resultado = metodo_aleman(bono)
     print("Flujos:")

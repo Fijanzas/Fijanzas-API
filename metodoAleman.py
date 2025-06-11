@@ -18,11 +18,11 @@ def prima_ultimo_flujo(porcentaje_prima, saldo_inicial_periodo, flujo):
 def costos_iniciales(valor_comercial, flotacion, costo_cavali):
     return valor_comercial + (flotacion*valor_comercial) + (costo_cavali*valor_comercial)
 
-def calcular_cok(tea_mercado, periodo):
-    return (1 + tea_mercado) ** (periodo / 360) - 1
+def calcular_cok(tea_mercado, periodo, frecuencia_pago):
+    return (1 + tea_mercado) ** (frecuencia_pago / periodo) - 1
 
-def precio_presente(flujo, periodo, tea_mercado):
-    return flujo / (1 + calcular_cok(tea_mercado, periodo)) ** periodo
+def precio_presente(flujo, periodo, cok):
+    return flujo / (1 + cok) ** periodo
 
 def utilidad(precio, flujo_inicial):
     return precio - flujo_inicial
@@ -58,10 +58,13 @@ def metodo_aleman(bono):
 
     r=0
     periodo = 0
+    coks = calcular_cok(bono.tea_mercado, bono.plazo_dias, bono.frecuencia_pago)
     for flujo in flujos:
         periodo+=1
-        r+= precio_presente(flujo.saldo_final, bono.plazo_dias, bono.tea_mercado)
+        r+= precio_presente(flujo.flujo_neto, periodo, coks)
+
+    utilidad_total = utilidad(r,bono.valor_comercial + (bono.flotacion*bono.valor_comercial)+(bono.costo_cavali*bono.valor_comercial))
     
-    resultado =Resultados(1, r, r- bono.valor_comercial - (bono.flotacion*bono.valor_comercial)-(bono.costo_cavali*bono.valor_comercial))
+    resultado =Resultados(1, r, utilidad_total)
 
     return flujos, resultado
