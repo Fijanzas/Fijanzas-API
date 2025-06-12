@@ -1,70 +1,69 @@
-from models.flujo import Flujo
-from models.bono import Bono
-from models.resultados import Resultados
+from models.flow import Flow
+from models.results import Results
 
-def amortizacion(valor_nominal, plazo_dias):
-    return valor_nominal / plazo_dias 
+def amortization(nominal_value, duration):
+    return nominal_value / duration 
 
-def cupon_Periodo(valor_nominal, tea_cupon):
-    return valor_nominal * tea_cupon
+def period_Coupon(nominal_value, coupon_rate):
+    return nominal_value * coupon_rate
 
-def cuota_periodo(valor_nominal, amortizacion, tea_cupon):
-    return amortizacion + cupon_Periodo(valor_nominal, tea_cupon)
+def period_Fee(nominal_value, amortization, coupon_rate):
+    return amortization + period_Coupon(nominal_value, coupon_rate)
 
-def prima_ultimo_flujo(porcentaje_prima, saldo_inicial_periodo, flujo):
-    prima = porcentaje_prima * saldo_inicial_periodo
-    return flujo + prima
+def last_Flow_Bonus(bonus_percentage, period_initial_balance, flow):
+    bonus = bonus_percentage * period_initial_balance
+    return flow + bonus
 
-def costos_iniciales(valor_comercial, flotacion, costo_cavali):
-    return valor_comercial + (flotacion*valor_comercial) + (costo_cavali*valor_comercial)
+def initial_Costs(commercial_value, flotation, cavali_cost):
+    return commercial_value + (flotation*commercial_value) + (cavali_cost*commercial_value)
 
-def calcular_cok(tea_mercado, periodo, frecuencia_pago):
-    return (1 + tea_mercado) ** (frecuencia_pago / periodo) - 1
+def calculate_cok(market_rate, period, payment_frequency):
+    return (1 + market_rate) ** (payment_frequency / period) - 1
 
-def precio_presente(flujo, periodo, cok):
-    return flujo / (1 + cok) ** periodo
+def present_value(flow, period, cok):
+    return flow / (1 + cok) ** period
 
-def utilidad(precio, flujo_inicial):
-    return precio - flujo_inicial
+def utility(price, final_balance):
+    return price - final_balance
 
-def metodo_aleman(bono):
-    flujos = []
-    saldo_inicial = bono.valor_nominal
-    amortizacion_constante = amortizacion(bono.valor_nominal, bono.plazo_dias)
+def german_Amortization_Method(bond):
+    flows = []
+    initial_balance = bond.nominal_value
+    constant_amortization = amortization(bond.nominal_value, bond.duration)
 
-    for periodo in range(1, bono.plazo_dias + 1):
-        cupon = cupon_Periodo(saldo_inicial, bono.tea_cupon)
-        prima = 0.0
-        if periodo == bono.plazo_dias:
-            prima = bono.prima_redencion
-            flujo_neto = prima_ultimo_flujo(prima, saldo_inicial, amortizacion_constante + cupon)
-            saldo_final = 0.0
+    for period in range(1, bond.duration + 1):
+        coupon = period_Coupon(initial_balance, bond.coupon_rate)
+        bonus = 0.0
+        if period == bond.duration:
+            bonus = bond.redemption_bonus
+            net_flow = last_Flow_Bonus(bonus, initial_balance, constant_amortization + coupon)
+            final_balance = 0.0
         else:
-            flujo_neto = amortizacion_constante + cupon
-            saldo_final = saldo_inicial - amortizacion_constante
+            net_flow = constant_amortization + coupon
+            final_balance = initial_balance - constant_amortization
 
-        flujo = Flujo(
-            id_bono=1,
-            periodo=periodo,
-            saldo_inicial=saldo_inicial,
-            amortizacion=amortizacion_constante,
-            cupon=cupon,
-            prima=prima,
-            flujo_neto=flujo_neto,
-            saldo_final=saldo_final
+        flow = Flow(
+            1,
+            period,
+            initial_balance,
+            constant_amortization,
+            coupon,
+            bonus,
+            net_flow,
+            final_balance
         )
-        flujos.append(flujo)
-        saldo_inicial = saldo_final
+        flows.append(flow)
+        initial_balance = final_balance
 
     r=0
-    periodo = 0
-    coks = calcular_cok(bono.tea_mercado, bono.plazo_dias, bono.frecuencia_pago)
-    for flujo in flujos:
-        periodo+=1
-        r+= precio_presente(flujo.flujo_neto, periodo, coks)
+    period = 0
+    coks = calculate_cok(bond.market_rate, bond.duration, bond.payment_frequency)
+    for flow in flows:
+        period+=1
+        r+= present_value(flow.net_flow, period, coks)
 
-    utilidad_total = utilidad(r,bono.valor_comercial + (bono.flotacion*bono.valor_comercial)+(bono.costo_cavali*bono.valor_comercial))
+    total_utility = utility(r,bond.commercial_value + (bond.flotation*bond.commercial_value)+(bond.cavali_cost*bond.commercial_value))
     
-    resultado =Resultados(1, r, utilidad_total)
+    result = Results(1, r, total_utility)
 
-    return flujos, resultado
+    return flows, result

@@ -1,17 +1,15 @@
-from models.flujo import Flujo
-from models.bono import Bono
-from models.resultados import Resultados
-from metodoAleman import metodo_aleman
+from models.bond import Bond
+from metodoAleman import german_Amortization_Method
 
 def main():
-    bono = Bono(1000, 1050, 0.03923048454, 0.045, 2, 4, 0.01, 0.0045, 0.005, 1)
+    bond = Bond(1, 1000, 1050, 0.03923048454, 0.045, 2, 4, 0.01, 0.0045, 0.005)
 
-    flujos, resultado = metodo_aleman(bono)
+    flows, results = german_Amortization_Method(bond)
     print("Flujos:")
-    for flujo in flujos:
-        print(vars(flujo))
+    for flow in flows:
+        print(vars(flow))
     print("Resultado:")
-    print(vars(resultado))
+    print(vars(results))
 
 
 if __name__ == "__main__":
