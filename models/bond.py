@@ -8,9 +8,13 @@ class Bond:
         market_rate: float, #TEA mercado
         payment_frequency: int,
         duration: int, #plazo
-        redemption_bonus: float,
+        bonus: float,
         flotation: float,
-        cavali_cost: float
+        cavali: float,
+        structuration: float = 0.0,
+        colocation: float = 0.0,
+        total_grace_period: int = 0,
+        partial_grace_period: int = 0,
     ):
         self.user_id = user_id
         self.nominal_value = nominal_value
@@ -19,6 +23,10 @@ class Bond:
         self.market_rate = market_rate
         self.payment_frequency = payment_frequency
         self.duration = duration
-        self.redemption_bonus = redemption_bonus
+        self.bonus = bonus
         self.flotation = flotation
-        self.cavali_cost = cavali_cost
+        self.cavali = cavali
+        self.structuration = structuration
+        self.colocation = colocation
+        self.total_grace_period = total_grace_period
+        self.partial_grace_period = partial_grace_period
