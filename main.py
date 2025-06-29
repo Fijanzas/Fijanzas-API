@@ -107,7 +107,7 @@ def get_db():
 db_dependency = Annotated[Session, Depends(get_db)]
 
 # Endpoint para crear usuario con contraseña hasheada
-@app.post("/users/", status_code=status.HTTP_201_CREATED)
+@app.post("/users", status_code=status.HTTP_201_CREATED)
 async def create_user(user: UserBase, db: db_dependency):
     # Hashear la contraseña antes de guardar
     hashed_password = get_password_hash(user.password)
@@ -143,7 +143,7 @@ async def login(user_login: UserLogin, db: db_dependency):
     }
 
 
-@app.post("/bonds/", response_model=BondResponse, status_code=status.HTTP_201_CREATED)
+@app.post("/bonds", response_model=BondResponse, status_code=status.HTTP_201_CREATED)
 async def create_bond(bond: BondBase, db: db_dependency):
     db_bond = models.BondDB(**bond.model_dump())
     db.add(db_bond)
@@ -180,13 +180,13 @@ async def create_bond(bond: BondBase, db: db_dependency):
     # Return the created bond
     return db_bond
 
-@app.get("/bonds/{user_id}", response_model=BondResponse, status_code=status.HTTP_200_OK)
-async def get_bond(user_id: int, db: db_dependency):
-    db_bond = db.query(models.BondDB).filter(models.BondDB.user_id == user_id).first()
-    if not db_bond:
-        raise HTTPException(status_code=404, detail="Bond not found")
+@app.get("/bonds/{user_id}", response_model=list[BondResponse], status_code=status.HTTP_200_OK)
+async def get_bonds(user_id: int, db: db_dependency):
+    db_bonds = db.query(models.BondDB).filter(models.BondDB.user_id == user_id).all()
+    if not db_bonds:
+        raise HTTPException(status_code=404, detail="Bonds not found")
     
-    return db_bond
+    return db_bonds
 
 @app.get("/bonds/{bond_id}/flows", response_model=list[FlowBase], status_code=status.HTTP_200_OK)
 async def get_bond_flows(bond_id: int, db: db_dependency):

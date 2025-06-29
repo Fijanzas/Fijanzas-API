@@ -52,7 +52,7 @@ La API estará disponible en: `http://localhost:8000`
 ## 🔐 Autenticación
 
 ### 1. Crear Usuario
-**POST** `/users/`
+**POST** `/users`
 
 ```json
 {
@@ -92,7 +92,7 @@ La API estará disponible en: `http://localhost:8000`
 ## 💰 Gestión de Bonos
 
 ### 1. Crear Bono
-**POST** `/bonds/`
+**POST** `/bonds`
 
 ```json
 {
@@ -233,7 +233,7 @@ python test_connection.py
 
 1. **Crear usuario:**
 ```bash
-curl -X POST "http://localhost:8000/users/" \
+curl -X POST "http://localhost:8000/users" \
   -H "Content-Type: application/json" \
   -d '{
     "username": "testuser",
@@ -254,7 +254,7 @@ curl -X POST "http://localhost:8000/login" \
 
 3. **Crear bono:**
 ```bash
-curl -X POST "http://localhost:8000/bonds/" \
+curl -X POST "http://localhost:8000/bonds" \
   -H "Content-Type: application/json" \
   -d '{
     "user_id": 1,
