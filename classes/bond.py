@@ -1,6 +1,7 @@
 class Bond:
     def __init__(
         self,
+        id: int,  # Unique identifier for the bond
         user_id: int,
         nominal_value: float,
         commercial_value: float,
@@ -16,6 +17,7 @@ class Bond:
         total_grace_period: int = 0,
         partial_grace_period: int = 0,
     ):
+        self.id = id
         self.user_id = user_id
         self.nominal_value = nominal_value
         self.commercial_value = commercial_value

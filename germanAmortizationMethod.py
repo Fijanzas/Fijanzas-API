@@ -1,7 +1,6 @@
-from models.flow import Flow
-from models.results import Results
+from classes.flow import Flow
+from classes.results import Results
 from scipy.optimize import newton
-import uuid
 
 def amortization(nominal_value, duration, currentperiod):
     amort = nominal_value / (duration - currentperiod + 1) 
@@ -77,7 +76,7 @@ def german_Amortization_Method(bond):
                 final_balance = initial_balance - constant_amortization
 
         flow = Flow(
-            1,  # bond_id, can be set to a unique value or generated
+            bond.id,  # bond_id, can be set to a unique value or generated
             period,
             initial_balance,
             constant_amortization,  # Solo amortización después de gracia total
@@ -108,7 +107,7 @@ def german_Amortization_Method(bond):
 
     results = Results(
         1,  # results_id, can be set to a unique value or generated
-        bond.user_id,
+        bond.id,
         tcea,
         trea,
         max_price_value
