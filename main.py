@@ -48,7 +48,7 @@ class BondResponse(BaseModel):
     commercial_value: float
     coupon_rate: float
     market_rate: float
-    payment_frequency: int
+    payment_frequency: int = 2
     duration: int
     bonus: float
     flotation: float
@@ -146,6 +146,7 @@ async def login(user_login: UserLogin, db: db_dependency):
 @app.post("/bonds", response_model=BondResponse, status_code=status.HTTP_201_CREATED)
 async def create_bond(bond: BondBase, db: db_dependency):
     db_bond = models.BondDB(**bond.model_dump())
+    db_bond.payment_frequency = 2  # Default value for payment frequency
     db.add(db_bond)
     db.commit()
     db.refresh(db_bond)
@@ -187,6 +188,52 @@ async def get_bonds(user_id: int, db: db_dependency):
         raise HTTPException(status_code=404, detail="Bonds not found")
     
     return db_bonds
+
+@app.delete("/bonds/{bond_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_bond(bond_id: int, db: db_dependency):
+    db_bond = db.query(models.BondDB).filter(models.BondDB.id == bond_id).first()
+    if not db_bond:
+        raise HTTPException(status_code=404, detail="Bond not found")
+    
+    db.delete(db_bond)
+    db.commit()
+    
+    return {"message": "Bond deleted successfully"}
+
+@app.put("/bonds/{bond_id}", response_model=BondResponse, status_code=status.HTTP_200_OK)
+async def update_bond(bond_id: int, bond: BondBase, db: db_dependency):
+    db_bond = db.query(models.BondDB).filter(models.BondDB.id == bond_id).first()
+    if not db_bond:
+        raise HTTPException(status_code=404, detail="Bond not found")
+    
+    for key, value in bond.model_dump().items():
+        setattr(db_bond, key, value)
+    
+    db.commit()
+    db.refresh(db_bond)
+    
+    # Recalculate flows and results after updating the bond
+    flows, results = german_Amortization_Method(db_bond)
+
+    # Clear existing flows and results
+    db.query(models.FlowDB).filter(models.FlowDB.bond_id == bond_id).delete()
+    db.query(models.ResultsDB).filter(models.ResultsDB.bond_id == bond_id).delete()
+
+    # Save new flows to database
+    for flow in flows:
+        db_flow = models.FlowDB(
+            bond_id=db_bond.id,
+            period=flow.period,
+            initial_balance=round(flow.initial_balance, 2),
+            amortization=round(flow.amortization, 2),
+            coupon=round(flow.coupon, 2),
+            bonus=round(flow.bonus, 2),
+            net_flow=round(flow.net_flow, 2),
+            final_balance=round(flow.final_balance, 2)
+        )
+        db.add(db_flow)
+    
+    db.commit()
 
 @app.get("/bonds/{bond_id}/flows", response_model=list[FlowBase], status_code=status.HTTP_200_OK)
 async def get_bond_flows(bond_id: int, db: db_dependency):

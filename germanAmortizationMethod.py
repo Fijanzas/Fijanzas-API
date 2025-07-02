@@ -35,7 +35,7 @@ def TREA(bond,flows):
     return trea
 
 def COK(market_rate, duration, payment_frequency):
-    return (1 + market_rate) ** (120 / 30) - 1
+    return (1 + market_rate) ** (120 / 30) - 1 #esto hay q cambiarlo antes de la version final a duration/payment_frequency
 
 def max_price(flows, cok):
     price = 0
@@ -47,10 +47,12 @@ def max_price(flows, cok):
 def german_Amortization_Method(bond):
     flows = []
     initial_balance = bond.nominal_value
+
+    coupon_rate = ((1+ bond.coupon_rate)**(1/2))-1 
     bonus= 0
     for period in range(1, bond.duration + 1):
 
-        coupon = period_Coupon(initial_balance, bond.coupon_rate)
+        coupon = period_Coupon(initial_balance, coupon_rate)
         constant_amortization = amortization(initial_balance, bond.duration, period)
         
         # Período de gracia total - no se paga nada, pero balance se calcula normalmente
@@ -72,7 +74,7 @@ def german_Amortization_Method(bond):
                 net_flow = bonus + constant_amortization + coupon
                 final_balance = 0.0
             else:
-                net_flow = period_Fee(final_balance, constant_amortization, bond.coupon_rate)
+                net_flow = period_Fee(final_balance, constant_amortization, coupon_rate)
                 final_balance = initial_balance - constant_amortization
 
         flow = Flow(
