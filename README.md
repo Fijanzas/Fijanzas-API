@@ -102,7 +102,7 @@ La API estará disponible en: `http://localhost:8000`
   "coupon_rate": 0.05809140331,
   "market_rate": 0.002004008,
   "payment_frequency": 2,
-  "duration": 6,
+  "duration": 3,
   "bonus": 0.009,
   "flotation": 0.0045,
   "cavali": 0.005,

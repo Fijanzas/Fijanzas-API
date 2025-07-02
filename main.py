@@ -147,6 +147,7 @@ async def login(user_login: UserLogin, db: db_dependency):
 async def create_bond(bond: BondBase, db: db_dependency):
     db_bond = models.BondDB(**bond.model_dump())
     db_bond.payment_frequency = 2  # Default value for payment frequency
+    db_bond.duration = db_bond.duration *2 # Convert duration to semi-annual periods
     db.add(db_bond)
     db.commit()
     db.refresh(db_bond)
