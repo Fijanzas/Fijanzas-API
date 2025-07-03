@@ -47,11 +47,13 @@ def max_price(flows, cok):
 def german_Amortization_Method(bond):
     flows = []
     initial_balance = bond.nominal_value
-
+    
     coupon_rate = ((1+ bond.coupon_rate)**(1/2))-1 
     bonus= 0
     for period in range(1, bond.duration + 1):
 
+        final_balance = initial_balance
+        
         coupon = period_Coupon(initial_balance, coupon_rate)
         constant_amortization = amortization(initial_balance, bond.duration, period)
         
