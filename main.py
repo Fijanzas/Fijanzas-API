@@ -118,7 +118,7 @@ def get_db():
 cavali = 0.0005250
 estructuration =  0.00235394117
 colocation = 0.0015
-flotation = 0.001
+flotation = 0.021
 db_dependency = Annotated[Session, Depends(get_db)]
 
 # Endpoint para crear usuario con contraseña hasheada
