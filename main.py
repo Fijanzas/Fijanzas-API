@@ -115,6 +115,10 @@ def get_db():
     finally:
         db.close()
 
+cavali = 0.0005250
+estructuration =  0.00235394117
+colocation = 0.0015
+flotation = 0.001
 db_dependency = Annotated[Session, Depends(get_db)]
 
 # Endpoint para crear usuario con contraseña hasheada
@@ -122,7 +126,7 @@ db_dependency = Annotated[Session, Depends(get_db)]
 async def create_user(user: UserBase, db: db_dependency):
     # Hashear la contraseña antes de guardar
     hashed_password = get_password_hash(user.password)
-    
+
     db_user = models.UserDB(
         username=user.username,
         email=user.email,
@@ -158,7 +162,11 @@ async def login(user_login: UserLogin, db: db_dependency):
 async def create_bond(bond: BondBase, db: db_dependency):
     db_bond = models.BondDB(**bond.model_dump())
     db_bond.payment_frequency = 2  # Default value for payment frequency
-    db_bond.duration = db_bond.duration *2 # Convert duration to semi-annual periods
+    db_bond.duration = db_bond.duration * 2 # Convert duration to semi-annual periods
+    db_bond.cavali = cavali
+    db_bond.structuration = estructuration
+    db_bond.colocation = colocation
+    db_bond.flotation = flotation
     db.add(db_bond)
 
     try:
