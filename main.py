@@ -6,10 +6,20 @@ import models
 from database import engine, SessionLocal
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
+from fastapi.middleware.cors import CORSMiddleware
 #from jose import JWTError, jwt
 #from datetime import datetime, timedelta
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Permite cualquier origen (flexible para desarrollo)
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"], # Explícito para evitar errores 405
+    allow_headers=["*"],
+)
+
 models.Base.metadata.create_all(bind=engine)
 
 # Configuración de JWT y hashing
@@ -44,6 +54,7 @@ class BondBase(BaseModel):
 
 class BondResponse(BaseModel):
     id: int
+    user_id: int
     nominal_value: float
     commercial_value: float
     coupon_rate: float
@@ -149,9 +160,20 @@ async def create_bond(bond: BondBase, db: db_dependency):
     db_bond.payment_frequency = 2  # Default value for payment frequency
     db_bond.duration = db_bond.duration *2 # Convert duration to semi-annual periods
     db.add(db_bond)
-    db.commit()
-    db.refresh(db_bond)
-    flows,results = german_Amortization_Method(db_bond)
+
+    try:
+        db.flush()
+        db.refresh(db_bond)
+    except Exception as e:
+        db.rollback() # Si falla al obtener el ID, revierte todo.
+        raise HTTPException(status_code=400, detail=f"Database error on bond creation: {e}")
+    
+    try:
+        flows, results = german_Amortization_Method(db_bond)
+    except Exception as e:
+        db.rollback() # Hacemos un rollback explícito por si acaso.
+        # Devuelve un error 500 porque es un fallo en la lógica de negocio, no en los datos de entrada.
+        raise HTTPException(status_code=500, detail=f"Error during financial calculation: {e}")
 
     # Save flows to database
     for flow in flows:
@@ -167,7 +189,6 @@ async def create_bond(bond: BondBase, db: db_dependency):
         )
         db.add(db_flow)
     
-    db.commit()  # Commit all flows at once
 
     # Save results to database
     db_results = models.ResultsDB(
@@ -176,18 +197,26 @@ async def create_bond(bond: BondBase, db: db_dependency):
         TREA=round(results.TREA, 4),
         Precio_Maximo=round(results.Precio_Maximo, 2)
     )
-    db.add(db_results)
-    db.commit()  # Commit results
 
+    db.add(db_results)
+
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback() 
+        raise HTTPException(status_code=500, detail=f"Failed to commit transaction to database: {e}")
+
+    # 7. Refrescamos el objeto para asegurarnos de que tiene los datos finales de la DB.
+    db.refresh(db_bond)
+    
+  
     # Return the created bond
     return db_bond
 
-@app.get("/bonds/{user_id}", response_model=list[BondResponse], status_code=status.HTTP_200_OK)
+@app.get("/bonds/{user_id}/bonds", response_model=list[BondResponse], status_code=status.HTTP_200_OK)
 async def get_bonds(user_id: int, db: db_dependency):
     db_bonds = db.query(models.BondDB).filter(models.BondDB.user_id == user_id).all()
-    if not db_bonds:
-        raise HTTPException(status_code=404, detail="Bonds not found")
-    
+
     return db_bonds
 
 @app.delete("/bonds/{bond_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -200,6 +229,13 @@ async def delete_bond(bond_id: int, db: db_dependency):
     db.commit()
     
     return {"message": "Bond deleted successfully"}
+
+@app.get("/bonds/{bond_id}", response_model=BondResponse)
+async def get_bond_by_id(bond_id: int, db: db_dependency):
+    db_bond = db.query(models.BondDB).filter(models.BondDB.id == bond_id).first()
+    if not db_bond:
+        raise HTTPException(status_code=404, detail="Bond not found")
+    return db_bond
 
 @app.put("/bonds/{bond_id}", response_model=BondResponse, status_code=status.HTTP_200_OK)
 async def update_bond(bond_id: int, bond: BondBase, db: db_dependency):
