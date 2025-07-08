@@ -167,8 +167,6 @@ async def create_bond(bond: BondBase, db: db_dependency):
     db_bond.structuration = estructuration
     db_bond.colocation = colocation
     db_bond.flotation = flotation
-    db_bond.market_rate = bond.coupon_rate
-    db_bond.commercial_value = bond.nominal_value + (bond.flotation * bond.nominal_value) + (bond.cavali * bond.nominal_value)
     db.add(db_bond)
 
     try:
