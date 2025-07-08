@@ -12,10 +12,6 @@ def period_Coupon(nominal_value, coupon_rate):
 def period_Fee(nominal_value, amortization, coupon_rate):
     return amortization + period_Coupon(nominal_value, coupon_rate)
 
-
-def initial_Costs(commercial_value, flotation, cavali_cost):
-    return commercial_value + (flotation*commercial_value) + (cavali_cost*commercial_value)
-
 def TIR(value, flows):
     def npv(rate):
         return sum(flow.net_flow / ((1 + rate) ** flow.period) for flow in flows) - value
@@ -104,17 +100,19 @@ def german_Amortization_Method(bond):
             initial_balance = final_balance
 
     # Calcular TIR, TCEA y TREA
+    cok = COK(bond.market_rate, bond.duration, bond.payment_frequency)
+    bond.commercial_value = max_price(flows, cok)
+
     trea= TREA(bond, flows)
     tcea = TCEA(bond, flows)
-    cok = COK(bond.market_rate, bond.duration, bond.payment_frequency)
-    max_price_value = max_price(flows, cok)
+
 
     results = Results(
         1,  # results_id, can be set to a unique value or generated
         bond.id,
         tcea,
         trea,
-        max_price_value
+        bond.commercial_value
     )
 
 
