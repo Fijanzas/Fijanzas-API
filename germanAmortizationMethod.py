@@ -31,7 +31,7 @@ def TREA(bond,flows):
     return trea
 
 def COK(market_rate, duration, payment_frequency):
-    return (1 + market_rate) ** (120 / 30) - 1 #esto hay q cambiarlo antes de la version final a duration/payment_frequency
+    return (1 + market_rate) ** (180 /360 ) - 1
 
 def max_price(flows, cok):
     price = 0

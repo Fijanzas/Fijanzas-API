@@ -99,7 +99,7 @@ La API estará disponible en: `http://localhost:8000`
   "user_id": 1,
   "nominal_value": 1200,
   "commercial_value": 1200,
-  "coupon_rate": 0.05809140331,
+  "coupon_rate":    0.05809140331,
   "market_rate": 0.05809140331,
   "payment_frequency": 2,
   "duration": 3,
